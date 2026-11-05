@@ -1,6 +1,7 @@
 import java.time.Instant;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.stream.IntStream;
 
 public class Demo {
     static Evento e(int id, int p) {
@@ -56,6 +57,44 @@ public class Demo {
         Ordenamientos.counting(ejemplo);
         System.out.println(Arrays.toString(ejemplo));
         ejemplosPorFecha();
+        medirTiempos(pedirCantidad(new Scanner(System.in)));
+    }
+    static int pedirCantidad(Scanner sc) {
+        System.out.print("\nCantidad de eventos a generar (entero positivo): ");
+        String s = sc.next();
+        // [1-9]\d{0,8}: positivo y sin desbordar int
+        return s.matches("[1-9]\\d{0,8}") ? Integer.parseInt(s) : pedirCantidad(sc);
+    }
+    static Evento[] generarMock(int n) {
+        Random rnd = new Random(42);
+        Instant base = Instant.parse("2020-01-01T00:00:00Z");
+        return IntStream.range(0, n)
+            .mapToObj(i -> new Evento(rnd.nextInt(1_000_000),
+                base.plusSeconds(rnd.nextInt(200_000_000)), "Mock " + i, rnd.nextInt(10)))
+            .toArray(Evento[]::new);
+    }
+    static void medirTiempos(int n) {
+        Evento[] datos = generarMock(n);
+        Comparator<Evento> f = Ordenamientos.POR_FECHA;
+        System.out.println("\nTiempos con " + n + " eventos:");
+        List.<Map.Entry<String, Consumer<Evento[]>>>of(
+            Map.entry("Bubble (fecha)", a -> Ordenamientos.bubble(a, f)),
+            Map.entry("Selection (fecha)", a -> Ordenamientos.selection(a, f)),
+            Map.entry("Insertion (fecha)", a -> Ordenamientos.insertion(a, f)),
+            Map.entry("Merge (fecha)", a -> Ordenamientos.merge(a, f)),
+            Map.entry("Quick (fecha)", a -> Ordenamientos.quick(a, f)),
+            Map.entry("Heap (fecha)", a -> Ordenamientos.heap(a, f)),
+            Map.entry("Shell (fecha)", a -> Ordenamientos.shell(a, f)),
+            // estos tres no reciben comparador: ordenan por su clave fija
+            Map.entry("Counting (prioridad)", Ordenamientos::counting),
+            Map.entry("Radix (id)", Ordenamientos::radix),
+            Map.entry("Bucket (prioridad)", Ordenamientos::bucket)
+        ).forEach(e -> {
+            Evento[] a = datos.clone();
+            long inicio = System.nanoTime();
+            e.getValue().accept(a);
+            System.out.printf("  %-22s %10.3f ms%n", e.getKey(), (System.nanoTime() - inicio) / 1e6);
+        });
     }
     static void imprimir(String titulo, Evento[] a) {
         System.out.println("\n" + titulo);
