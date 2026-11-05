@@ -55,5 +55,34 @@ public class Demo {
         Evento[] ejemplo = {e(170,3),e(45,1),e(75,3),e(90,0),e(802,1),e(24,2)};
         Ordenamientos.counting(ejemplo);
         System.out.println(Arrays.toString(ejemplo));
+        ejemplosPorFecha();
+    }
+    static void imprimir(String titulo, Evento[] a) {
+        System.out.println("\n" + titulo);
+        Arrays.stream(a).forEach(x -> System.out.println(
+            "  " + x.getFechaCreacion() + "  #" + x.getId() + " " + x.getDescripcion()));
+    }
+    static void ejemplosPorFecha() {
+        Evento[] eventos = {
+            new Evento(1, Instant.parse("2026-03-15T09:30:00Z"), "Reunion de equipo", 2),
+            new Evento(2, Instant.parse("2025-12-01T14:00:00Z"), "Cierre contable", 1),
+            new Evento(3, Instant.parse("2026-07-20T08:00:00Z"), "Auditoria", 0),
+            new Evento(4, Instant.parse("2026-01-10T17:45:00Z"), "Capacitacion", 3),
+            new Evento(5, Instant.parse("2025-11-28T11:15:00Z"), "Entrega proyecto", 1),
+            new Evento(6, Instant.parse("2026-03-15T08:00:00Z"), "Desayuno", 4),
+        };
+        imprimir("Original", eventos);
+
+        Evento[] porMerge = eventos.clone();
+        Ordenamientos.merge(porMerge, Ordenamientos.POR_FECHA);
+        imprimir("1) Merge sort por fecha (mas antiguo primero)", porMerge);
+
+        Evento[] porQuick = eventos.clone();
+        Ordenamientos.quick(porQuick, Ordenamientos.POR_FECHA.reversed());
+        imprimir("2) Quick sort por fecha (mas reciente primero)", porQuick);
+
+        Evento[] porHeap = eventos.clone();
+        Ordenamientos.heap(porHeap, Ordenamientos.POR_FECHA);
+        imprimir("3) Heap sort por fecha (mas antiguo primero)", porHeap);
     }
 }
